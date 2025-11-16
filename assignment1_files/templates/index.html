@@ -9,7 +9,9 @@
     <h1>Movies List</h1>
 
     <!-- Displaying all movies -->
-
+    {% for movie in movies %}
+    <li>{{movie.name}}, {{movie.year}} - Oscars: {{movie.oscars}}</li> 
+    {% endfor %}   
     <!-- Link to add a new movie -->
     <a href="{{ url_for('add_movie') }}">Add a New Movie</a>
 </body>
