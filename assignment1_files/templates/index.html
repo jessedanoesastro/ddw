@@ -10,9 +10,15 @@
 
     <!-- Displaying all movies -->
     {% for movie in movies %}
-    <li>{{movie.name}}, {{movie.year}} - Oscars: {{movie.oscars}}</li> 
+    <li>{{movie.name}}, {{movie.year}} - Oscars: {{movie.oscars}}
+         <a href="{{ url_for('edit_movie', id=movie.id) }}">Edit</a>
+         <form action="{{ url_for('delete_movie', id=movie.id) }}" method="POST" style="display:inline;">
+            <button type="submit">Delete</button>
+         </form>
+    </li> 
     {% endfor %}   
     <!-- Link to add a new movie -->
+    <br>    
     <a href="{{ url_for('add_movie') }}">Add a New Movie</a>
 </body>
 </html>

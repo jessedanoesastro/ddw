@@ -36,8 +36,8 @@ def add_movie():
     if request.method == "POST" :
         #get items from form 
         name = request.form['name']
-        year = int.request.form['year']
-        oscars = int.request.form['oscars']
+        year = int(request.form['year'])
+        oscars = int(request.form['oscars'])
         # Create a new movie entry
         new_movie = Movie(name=name, year=year, oscars=oscars)
 
@@ -48,6 +48,35 @@ def add_movie():
         return redirect(url_for('index'))
 
     return render_template('add_movie.html')
+
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit_movie(id):
+     #get movie by ID
+    movie = Movie.query.get(id) 
+    
+    if not movie:
+        return "Movie not found", 404
+
+    if request.method == 'POST':
+        #update movie data from form
+        movie.name = request.form['name']
+        movie.year = int(request.form['year'])
+        movie.oscars = int(request.form['oscars'])
+        
+        db.session.add(movie) 
+        db.session.commit()
+
+        return redirect(url_for('index'))
+
+    return render_template('edit_movie.html', movie=movie)
+
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete_movie(id):
+    #delete movie
+    movie = Movie.query.get_or_404(id)
+    db.session.delete(movie)
+    db.session.commit()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
