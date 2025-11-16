@@ -31,13 +31,15 @@ def index():
     movies = Movie.query.all()  # Get all movies from the database
     return render_template('index.html', movies=movies)
 
-@app.route('/add_movie', methods=[...])
+@app.route('/add_movie', methods=['GET','POST'])
 def add_movie():
-    if request.method == ... :
+    if request.method == "POST" :
         #get items from form 
-
+        name = request.form['name']
+        year = int.request.form['year']
+        oscars = int.request.form['oscars']
         # Create a new movie entry
-        new_movie = Movie(...)
+        new_movie = Movie(name=name, year=year, oscars=oscars)
 
         # Add to the session and commit to the database
         db.session.add(new_movie)
