@@ -4,6 +4,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlalchemy as sa
 from flask import url_for
 from app import db
+from datetime import datetime, timezone, timedelta
+import secrets
+import sqlalchemy.orm as so
+from typing import Optional
 
 @login.user_loader
 def load_user(id):
@@ -33,11 +37,15 @@ class PaginatedAPIMixin(object):
         }
         return data
 
-class User(UserMixin, db.Model):
+class User(PaginatedAPIMixin, UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True, nullable=False)
     email = db.Column(db.String(120), unique=True, index=True, nullable=False)
     password_hash = db.Column(db.String(256))
+
+    token: so.Mapped[Optional[str]] = so.mapped_column(
+        sa.String(32), index=True, unique=True)
+    token_expiration: so.Mapped[Optional[datetime]]
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -47,6 +55,44 @@ class User(UserMixin, db.Model):
         
     def __repr__(self):
         return f"<User {self.username}>"
+    
+    def get_token(self, expires_in: int = 3600) -> str:
+        """Geef bestaand token terug als hij nog even geldig is, anders maak een nieuwe."""
+        now = datetime.now(timezone.utc)
+        if (
+            self.token
+            and self.token_expiration is not None
+            and self.token_expiration.replace(tzinfo=timezone.utc)
+                > now + timedelta(seconds=60)
+        ):
+            return self.token
+
+        self.token = secrets.token_hex(16)  # 16 bytes → 32 hex chars
+        self.token_expiration = now + timedelta(seconds=expires_in)
+        db.session.add(self)
+        return self.token
+
+    def revoke_token(self) -> None:
+        """Maak de huidige token meteen ongeldig."""
+        self.token_expiration = datetime.now(timezone.utc) - timedelta(seconds=1)
+        db.session.add(self)
+
+    @staticmethod
+    def check_token(token: str) -> "User | None":
+        """Zoek een user bij token, of None als token ongeldig / verlopen is."""
+        if not token:
+            return None
+
+        user = db.session.scalar(
+            sa.select(User).where(User.token == token)
+        )
+        if user is None or user.token_expiration is None:
+            return None
+
+        if user.token_expiration.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+            return None
+
+        return user
 
 class Movie(PaginatedAPIMixin, db.Model):
     __table_args__ = {'extend_existing': True}
