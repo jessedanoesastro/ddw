@@ -22,8 +22,9 @@ def add_movie():
         name = request.form['name']
         year = int(request.form['year'])
         oscars = int(request.form['oscars'])
+        genre = request.form['genre']
 
-        new_movie = Movie(name=name, year=year, oscars=oscars)
+        new_movie = Movie(name=name, year=year, oscars=oscars, genre=genre)
         db.session.add(new_movie)
         db.session.commit()
 
@@ -44,6 +45,7 @@ def edit_movie(id):
         movie.name = request.form['name']
         movie.year = int(request.form['year'])
         movie.oscars = int(request.form['oscars'])
+        movie.genre = request.form['genre']
 
         db.session.add(movie)
         db.session.commit()

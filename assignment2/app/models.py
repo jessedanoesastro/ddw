@@ -101,6 +101,7 @@ class Movie(PaginatedAPIMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     year = db.Column(db.Integer)
     oscars = db.Column(db.Integer)
+    genre = db.Column(db.String(64))
 
     def to_dict(self):
         return {
@@ -108,6 +109,7 @@ class Movie(PaginatedAPIMixin, db.Model):
             'name': self.name,
             'year': self.year,
             'oscars': self.oscars,
+            'genre': self.genre,
             '_links': {
                 'self': url_for('api.get_movie', id=self.id),
                 'collection': url_for('api.get_movies')
@@ -115,6 +117,6 @@ class Movie(PaginatedAPIMixin, db.Model):
         }
 
     def from_dict(self, data, new_movie=False):
-        for field in ['name', 'year', 'oscars']:
+        for field in ['name', 'year', 'oscars', 'genre']:
             if field in data:
                 setattr(self, field, data[field])
